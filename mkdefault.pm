@@ -320,7 +320,7 @@ This file is used to set some configuration and common functions used in CMS cli
 OR
 
     use mkdefault;
-    my $dbconnect=mkdefault->new(); * Here the host, prot, username and password will be taken from mt_requests.config file
+    my $dbconnect=mkdefault->new(); * Here the host, prot, username and password will be taken from 'global.config' file
     *$CUST_GLOBAL{db}{host};
     *$CUST_GLOBAL{db}{port};
     *$CUST_GLOBAL{db}{username};
