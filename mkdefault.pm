@@ -9,7 +9,7 @@ use DBI;
 use POSIX qw(strftime);
 require Exporter;
 our @ISA = qw(Exporter);
-our @EXPORT = qw(is_array is_hash is_nan %GLOB);
+our @EXPORT = qw(is_array is_hash is_nan %GLOB %CUST_GLOBAL);
 sub new {
 	my $curdate1=strftime "%Y-%m-%d", localtime;
 	my $curdate2=strftime "%F %r %Z(%z)", localtime;
@@ -24,8 +24,8 @@ sub new {
     }
     require $CUST_GLOBAL{main_config_file_path}.$config_file;
 	$self->{config_file}=$config_file;
-    $CUST_GLOBAL{error}{error_log}=exists($hash{error_log})?$hash{error_log}:$CUST_GLOBAL{error}{error_log_path};
-	my $error_log_file=$CUST_GLOBAL{error}{error_log}."/error.";
+    my $error_log=exists($hash{error_log})?$hash{error_log}:$CUST_GLOBAL{error}{error_log_path};
+	my $error_log_file=$error_log."/error.";
     if (exists($hash{script})) {
 		$error_log_file.=$hash{script}.".";
     }
@@ -111,8 +111,8 @@ sub printFatalError {
     my %hash = @_;
     my($heading,$message) = ($hash{head},$hash{message});
     print STDERR qq{\033[0;31m FatalError --> $heading :- $message \033[m \n};
-    print CUSTERR qq{\033[0;31m FatalError --> $heading :- $message \033[m \n};
-	$self->mailSender("from"=>$CUST_GLOBAL{error}{email}{err_from},"to"=>$CUST_GLOBAL{error}{email}{err_to},"cc"=>$CUST_GLOBAL{error}{email}{err_cc},"bcc"=>$CUST_GLOBAL{error}{email}{err_bcc},"subject"=>qq{Debtor Addition Scheduler FatalError - $heading},"body"=>"FatalError -- $heading :- $message");
+    print CUSTERR qq{ FatalError --> $heading :- $message  \n};
+	$self->mailSender(priority=>1,"from"=>$CUST_GLOBAL{error}{email}{err_from},"to"=>$CUST_GLOBAL{error}{email}{err_to},"cc"=>$CUST_GLOBAL{error}{email}{err_cc},"bcc"=>$CUST_GLOBAL{error}{email}{err_bcc},"subject"=>qq{Debtor Addition Scheduler FatalError - $heading},"body"=>"FatalError -- $heading :- $message");
     #exit(1);
 	return 0;
 }
@@ -121,8 +121,8 @@ sub printError {
     my %hash = @_;
     my($heading,$message) = ($hash{head},$hash{message});
     print STDERR qq{\033[0;91m Error --> $heading :- $message \033[m \n};
-    print CUSTERR qq{\033[0;91m Error --> $heading :- $message \033[m \n};
-	$self->mailSender("from"=>$CUST_GLOBAL{error}{email}{err_from},"to"=>$CUST_GLOBAL{error}{email}{err_to},"cc"=>$CUST_GLOBAL{error}{email}{err_cc},"bcc"=>$CUST_GLOBAL{error}{email}{err_bcc},"subject"=>qq{Debtor Addition Scheduler Error - $heading},"body"=>"Error -- $heading :- $message");
+    print CUSTERR qq{ Error --> $heading :- $message  \n};
+	$self->mailSender(priority=>2,"from"=>$CUST_GLOBAL{error}{email}{err_from},"to"=>$CUST_GLOBAL{error}{email}{err_to},"cc"=>$CUST_GLOBAL{error}{email}{err_cc},"bcc"=>$CUST_GLOBAL{error}{email}{err_bcc},"subject"=>qq{Debtor Addition Scheduler Error - $heading},"body"=>"Error -- $heading :- $message");
     return 0;
 }
 sub printWarning {
@@ -130,7 +130,7 @@ sub printWarning {
     my %hash = @_;
     my($heading,$message) = ($hash{head},$hash{message});
     print STDERR qq{\033[0;33m Warning --> $heading :- $message \033[m \n};
-    print CUSTERR qq{\033[0;33m Warning --> $heading :- $message \033[m \n};
+    print CUSTERR qq{ Warning --> $heading :- $message  \n};
     return 1;
 }
 sub printOutput {
@@ -138,7 +138,7 @@ sub printOutput {
     my %hash = @_;
     my($heading,$message) = ($hash{head},$hash{message});
     print STDOUT qq{\033[0;32m Output --> $heading :- $message \033[m \n};
-    print CUSTERR qq{\033[0;32m Output --> $heading :- $message \033[m \n};
+    print CUSTERR qq{ Output --> $heading :- $message  \n};
     return 1;
 }
 sub printInfo {
@@ -187,7 +187,6 @@ sub mailSender {
                 disposition => 'attachment; filename="'.$temp_file_name[$a].'"',
                 file => $temp_file[$a]
             });
-            
         }
         $sender->Close();
     } else {
@@ -272,6 +271,19 @@ sub date_validator {
 		} else {
 			$strp->pattern($hash{out_pattern});
 			return $strp->format_datetime($dt);
+		}
+	} else {
+		return 0;
+	}
+}
+sub email_validator {
+    my $self = shift;
+    my %hash = @_;
+	if($hash{email} && $hash{email} ne '') {
+		if($hash{email}=~/\A[a-z0-9!\#$%&'*+\/=?^_`{|}~-]+(?:\.[a-z0-9!\#$%&'*+\/=?^_`{|}~-]+)*@(?:[a-z0-9](?:[a-z0-9-]*[a-z0-9])?\.)+[a-z0-9](?:[a-z0-9-]*[a-z0-9])?\z/) {
+			return 1;
+		} else {
+			return 0;
 		}
 	} else {
 		return 0;
