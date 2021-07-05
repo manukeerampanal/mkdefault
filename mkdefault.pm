@@ -289,6 +289,30 @@ sub email_validator {
 		return 0;
 	}
 }
+sub camelize {
+    my $self = shift;
+    my ($string) = @_;
+    $string =~ s{(\w+)}{
+        ($a = lc $1) =~ s<(^[A-Za-z]|_[a-z])><
+            ($b = uc $1) =~ s/^_//;
+            $b;
+        >eg;
+        $a;
+    }eg;
+    return $string;
+}
+
+sub decamelize {
+    my $self = shift;
+    my ($string) = @_;
+    $string =~ s{(\w+)}{
+        ($a = $1) =~ s<(^[A-Za-z]|(?![a-z])[A-Z])><
+            "_" . lc $1
+        >eg;
+        substr $a, 1;
+    }eg;
+    return $string;
+}
 sub AUTOLOAD {
     my $self = shift;
 	my $type = ref($self) || croak("$self is not an object");
