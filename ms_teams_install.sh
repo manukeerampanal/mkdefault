@@ -27,8 +27,6 @@ sudo make install
 
 gcc --version
 
-exit 0
-
 cd ..
 
 wget "https://packages.microsoft.com/yumrepos/ms-teams/teams-$MS_TEAMS_VERSION-1.x86_64.rpm"
