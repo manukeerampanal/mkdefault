@@ -1,6 +1,6 @@
 #!/bin/sh
 
-GCC="gcc_7_5_0_release"
+GCC="gcc_7_3_0_release"
 BASE_DIR="ms_teams"
 MS_TEAMS_VERSION="1.4.00.13653"
 
